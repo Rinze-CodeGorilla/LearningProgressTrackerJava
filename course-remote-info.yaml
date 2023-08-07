@@ -7,7 +7,7 @@ update_date: "Thu, 01 Jan 1970 00:00:00 UTC"
 stages:
 - id: 979
   step: 14396
-  is_completed: false
+  is_completed: true
 - id: 980
   step: 14397
   is_completed: false
