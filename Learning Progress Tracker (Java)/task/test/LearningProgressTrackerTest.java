@@ -10,12 +10,10 @@ import static org.hyperskill.hstest.testing.expect.Expectation.expect;
 
 public class LearningProgressTrackerTest extends StageTest<String> {
 
-    @DynamicTest
+    @DynamicTest(order = 1)
     CheckResult testStartAndExit() {
         TestedProgram main = new TestedProgram();
-
-        String output = main.start().toLowerCase();
-
+        String output = main.start();
         expect(output).toContain(1).lines();
         if (incorrectString(output, "learning progress tracker")) {
             return CheckResult.wrong("When started, your program " +
@@ -25,6 +23,18 @@ public class LearningProgressTrackerTest extends StageTest<String> {
         if (!main.isWaitingInput()) {
             return CheckResult.wrong("After the start, your program should " +
                     "be ready to accept commands from the user");
+        }
+
+        output = main.execute("back");
+        expect(output).toContain(1).lines();
+        if (!main.isWaitingInput()) {
+            return CheckResult.wrong("Your program should keep running after the 'back' " +
+                    "command is entered");
+        }
+
+        if (anyMissingKeywords(output, "enter", "exit", "program")) {
+            return CheckResult.wrong("When 'back' command is entered your program " +
+                    "should print the hint \"Enter 'exit' to exit the program\"");
         }
 
         output = main.execute("exit");
@@ -40,10 +50,9 @@ public class LearningProgressTrackerTest extends StageTest<String> {
         }
 
         return CheckResult.correct();
-
     }
 
-    @DynamicTest(data = "getBlankInput")
+    @DynamicTest(order = 2, data = "getBlankInput")
     CheckResult testBlankInput(String input) {
         TestedProgram main = new TestedProgram();
         main.start();
@@ -52,13 +61,13 @@ public class LearningProgressTrackerTest extends StageTest<String> {
         expect(output).toContain(1).lines();
         if (incorrectString(output, "no input")) {
             return CheckResult.wrong("When the user enters an empty or blank " +
-                    "string, your program should print \"no input\"");
+                    "string, your program should print \"No input.\"");
         }
 
         return CheckResult.correct();
     }
 
-    @DynamicTest(data = "getUnknownCommands")
+    @DynamicTest(order = 3, data = "getUnknownCommands")
     CheckResult testUnknownCommands(String input) {
         TestedProgram main = new TestedProgram();
         main.start();
@@ -73,6 +82,107 @@ public class LearningProgressTrackerTest extends StageTest<String> {
         return CheckResult.correct();
     }
 
+    @DynamicTest(order = 4)
+    CheckResult testAddStudents1() {
+        TestedProgram main = new TestedProgram();
+        main.start();
+
+        String output = main.execute("add students");
+        expect(output).toContain(1).lines();
+        if (anyMissingKeywords(output,
+                "enter", "student", "credentials", "back", "return")) {
+            return CheckResult.wrong("When 'add students' command is entered, your " +
+                    "program should display the prompt \"Enter student credentials or " +
+                    "'back' to return.\"");
+        }
+
+        output = main.execute("exit");
+        expect(output).toContain(1).lines();
+        if (anyMissingKeywords(output, "incorrect", "credentials")) {
+            return CheckResult.wrong("Expected output: \"Incorrect credentials.\", " +
+                    "but your output was: " + output);
+        }
+
+        output = main.execute("back");
+        expect(output).toContain(1).lines();
+        if (anyMissingKeywords(output, "total", "0", "students", "added")) {
+            return CheckResult.wrong("Expected: \"Total 0 students were added\", but " +
+                    "your output was: " + output);
+        }
+
+        output = main.execute("back");
+        expect(output).toContain(1).lines();
+        if (anyMissingKeywords(output, "enter", "exit", "program")) {
+            return CheckResult.wrong("When 'back' command is entered your program " +
+                    "should stop waiting for student credentials");
+        }
+
+        output = main.execute("exit");
+        expect(output).toContain(1).lines();
+        if (anyMissingKeywords(output, "bye")) {
+            return CheckResult.wrong("When the 'exit' command is entered, " +
+                    "your program should say bye to the user");
+        }
+
+        if (!main.isFinished()) {
+            return CheckResult.wrong("After the 'exit' command has been entered, " +
+                    "your program should stop working");
+        }
+
+        return CheckResult.correct();
+    }
+
+    @DynamicTest(order = 5)
+    CheckResult testAddStudents2() {
+        TestedProgram main = new TestedProgram();
+        main.start();
+
+        main.execute("add students");
+        for (String input : getCorrectCredentials()) {
+            String output = main.execute(input);
+            expect(output).toContain(1).lines();
+            if (anyMissingKeywords(output, "student", "added")) {
+                return CheckResult.wrong("Expected output: \"Student has been added.\", but your " +
+                        "output was: " + output);
+            }
+        }
+
+        String output = main.execute("back");
+        expect(output).toContain(1).lines();
+        if (anyMissingKeywords(output, "total", "10", "students", "added")) {
+            return CheckResult.wrong("Expected: \"Total 10 students have been added\", but " +
+                    "your output was: " + output);
+        }
+
+        return CheckResult.correct();
+    }
+
+    @DynamicTest(order = 6)
+    CheckResult testAddStudents3() {
+        TestedProgram main = new TestedProgram();
+        main.start();
+        main.execute("add students");
+
+        for (String[] args : getIncorrectCredentials()) {
+            String output = main.execute(args[0]);
+            expect(output).toContain(1).lines();
+            if (incorrectString(output, args[1])) {
+                main.stop();
+                return CheckResult.wrong("Expected output: \"" + args[1] + "\", but your " +
+                        "output was: " + output);
+            }
+        }
+
+        String output = main.execute("back");
+        expect(output).toContain(1).lines();
+        if (anyMissingKeywords(output, "total", "0", "students", "added")) {
+            return CheckResult.wrong("Expected: \"Total 0 students have been added\", but " +
+                    "your output was: " + output);
+        }
+
+        return CheckResult.correct();
+    }
+
     private boolean anyMissingKeywords(String output, String... keywords) {
         List<String> tokens = Arrays.asList(
                 output.toLowerCase().split("\\W+")
@@ -81,19 +191,56 @@ public class LearningProgressTrackerTest extends StageTest<String> {
         return !tokens.containsAll(Arrays.asList(keywords.clone()));
     }
 
-    private boolean incorrectString(String output, String model) {
+    private boolean incorrectString(String output, String expected) {
         String normalizedOutput = output.replaceAll("\\W+", "").toLowerCase();
-        String normalizedModel = model.replaceAll("\\W+", "").toLowerCase();
+        String normalizedModel = expected.replaceAll("\\W+", "").toLowerCase();
 
         return !normalizedOutput.contains(normalizedModel);
     }
 
     private String[] getBlankInput() {
-        return new String[]{"", "  ", "\t", " \t"};
+        return new String[] {"", "  ", "\t", " \t"};
     }
 
     private String[] getUnknownCommands() {
-        return new String[]{"abc", "quit", "  brexit ", "exi  t", "help", "break",
-                "-help", "Ctrl+C", "exit please", ":q"};
+        return new String[] {"abc", "quit", "  brexit ", "exi  t", "?", "break",
+                "-exit", "Ctrl+C", "exit please", ":q"};
+    }
+
+    private String[] getCorrectCredentials() {
+        return new String[] { "John Smith jsmith@hotmail.com", "Anny Doolittle anny.md@mail.edu",
+                "Jean-Claude O'Connor jcda123@google.net", "Mary Emelianenko 125367at@zzz90.z9",
+                "Al Owen u15da125@a1s2f4f7.a1c2c5s4", "Robert Jemison Van de Graaff robertvdgraaff@mit.edu",
+                "Ed Eden a1@a1.a1", "na'me s-u ii@ii.ii", "n'a me su aa-b'b ab@ab.ab", "nA me 1@1.1"};
+    }
+
+    private String[][] getIncorrectCredentials() {
+        return new String[][] {
+                { "", "Incorrect credentials" }, { " \t", "Incorrect credentials." },
+                { "name surname", "Incorrect credentials." },
+                { "n surname email@email.xyz", "Incorrect first name." },
+                { "'name surname email@email.xyz", "Incorrect first name." },
+                { "-name surname email@email.xyz", "Incorrect first name." },
+                { "name- surname email@email.xyz", "Incorrect first name." },
+                { "name' surname email@email.xyz", "Incorrect first name." },
+                { "nam-'e surname email@email.xyz", "Incorrect first name." },
+                { "na'-me surname email@email.xyz", "Incorrect first name." },
+                { "na--me surname email@email.xyz", "Incorrect first name." },
+                { "na''me surname email@email.xyz", "Incorrect first name." },
+                { "námé surname email@email.xyz", "Incorrect first name." },
+                { "name s email@email.xyz", "Incorrect last name." },
+                { "name -surname email@email.xyz", "Incorrect last name." },
+                { "name 'surname email@email.xyz", "Incorrect last name." },
+                { "name surnam''e email@email.xyz", "Incorrect last name." },
+                { "name surn--ame email@email.xyz", "Incorrect last name." },
+                { "name s'-urname email@email.xyz", "Incorrect last name." },
+                { "name su-'rname email@email.xyz", "Incorrect last name." },
+                { "name surname- email@email.xyz", "Incorrect last name." },
+                { "name surname' email@email.xyz", "Incorrect last name." },
+                { "name surnámé email@email.xyz", "Incorrect last name." },
+                { "name surname emailemail.xyz", "Incorrect email." },
+                { "name surname email@emailxyz", "Incorrect email." },
+                { "name surname email@e@mail.xyz", "Incorrect email." },
+        };
     }
 }

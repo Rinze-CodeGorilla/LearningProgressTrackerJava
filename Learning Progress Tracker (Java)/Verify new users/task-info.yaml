@@ -1,16 +1,5 @@
 type: edu
 files:
-- name: src/tracker/Main.java
-  visible: true
-  text: |
-    package tracker;
-
-    public class Main {
-        public static void main(String[] args) {
-            System.out.println("Hello, World!");
-        }
-    }
-  learner_created: false
 - name: test/tracker/SampleTest.java
   visible: true
   text: |
@@ -294,6 +283,23 @@ files:
         }
     }
   learner_created: false
+- name: src/tracker/Main.java
+  visible: true
+  text: |
+    package tracker;
+
+    public class Main {
+        public static void main(String[] args) {
+            System.out.println("Hello, World!");
+        }
+    }
+  learner_created: false
+- name: test/tracker/MainTest.java
+  visible: true
+  learner_created: true
 feedback_link: https://hyperskill.org/projects/197/stages/980/implement#comment
-status: Unchecked
+status: Solved
+feedback:
+  message: Congratulations!
+  time: "Tue, 08 Aug 2023 14:06:24 UTC"
 record: -1
