@@ -23,6 +23,7 @@ public class Main {
                 case "add points" -> addPoints();
                 case "find" -> find();
                 case "statistics" -> statistics();
+                case "notify" -> sendNotifications();
                 case "" -> System.out.println("No input.");
                 default -> System.out.println("Unknown command!");
             }
@@ -30,21 +31,44 @@ public class Main {
         System.out.println("Bye!");
     }
 
+    static void sendNotifications() {
+        var students = new HashSet<Student>();
+        for (Courses course : Courses.values()) {
+            activities.activities.stream()
+                    .filter(a -> a.course() == course)
+                    .filter(a -> !a.student().notifications().contains(course))
+                    .collect(
+                            Collectors.groupingBy(
+                                    ActivitiesTracker.Activity::student,
+                                    Collectors.summingInt(ActivitiesTracker.Activity::score)))
+                    .entrySet()
+                    .stream()
+                    .filter(e -> e.getValue() >= course.requirement)
+                    .forEach(e -> {
+                        var student = e.getKey();
+                System.out.printf("""
+                        To: %s
+                        Re: Your Learning Progress
+                        Hello, %s! You have accomplished our %s course!
+                        """, student.email, student.name, course.name());
+                student.notifications.add(course);
+                students.add(student);
+            });
+        }
+        System.out.printf("Total %d students have been notified\n", students.size());
+    }
+
     static void statistics() {
         var stats = activities.getStats();
         System.out.printf("""
-                        Type the name of a course to see details or 'back' to quit:
-                        Most popular: %s
-                        Least popular: %s
-                        Highest activity: %s
-                        Lowest activity: %s
-                        Easiest course: %s
-                        Hardest course: %s
-                        """,
-                stats.mostStudents(), stats.leastStudents(),
-                stats.mostActive(), stats.leastActive(),
-                stats.easiestCourse(), stats.hardestCourse()
-        );
+                Type the name of a course to see details or 'back' to quit:
+                Most popular: %s
+                Least popular: %s
+                Highest activity: %s
+                Lowest activity: %s
+                Easiest course: %s
+                Hardest course: %s
+                """, stats.mostStudents(), stats.leastStudents(), stats.mostActive(), stats.leastActive(), stats.easiestCourse(), stats.hardestCourse());
         var acting = true;
         while (acting) {
             var command = scanner.nextLine();
@@ -64,7 +88,7 @@ public class Main {
         var format = "%-6s%-8s%s%n";
         System.out.format(format, "id", "points", "completed");
         activities.getCourse(course).forEach(ss -> {
-            System.out.printf(format, ss.student().id(), ss.score(), "%1.1f%%".formatted( 100f * ss.score() / course.requirement));
+            System.out.printf(format, ss.student().id(), ss.score(), "%1.1f%%".formatted(100f * ss.score() / course.requirement));
         });
     }
 
@@ -155,22 +179,17 @@ public class Main {
 
     static String addStudent(String credentials) {
         var parts = credentials.split(" ");
-        if (parts.length < 3)
-            return "Incorrect credentials.";
+        if (parts.length < 3) return "Incorrect credentials.";
         var firstName = parts[0];
         var lastNameParts = Arrays.stream(parts).skip(1).limit(parts.length - 2).toList();
         var lastName = Arrays.stream(parts).skip(1).limit(parts.length - 2).collect(Collectors.joining(" "));
         var email = parts[parts.length - 1];
-        if (!validateName(firstName))
-            return "Incorrect first name.";
-        if (!lastNameParts.stream().allMatch(Main::validateName))
-            return "Incorrect last name.";
-        if (!validateEmail(email))
-            return "Incorrect email.";
-        if (!emails.add(email))
-            return "This email is already taken.";
+        if (!validateName(firstName)) return "Incorrect first name.";
+        if (!lastNameParts.stream().allMatch(Main::validateName)) return "Incorrect last name.";
+        if (!validateEmail(email)) return "Incorrect email.";
+        if (!emails.add(email)) return "This email is already taken.";
         studentCount++;
-        students.add(new Student(students.size()));
+        students.add(new Student(students.size(), firstName + " " + lastName, email));
         return "The student has been added.";
     }
 
