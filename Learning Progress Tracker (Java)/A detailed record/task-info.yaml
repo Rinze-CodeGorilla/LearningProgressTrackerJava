@@ -664,9 +664,9 @@ files:
 - name: src/tracker/Student.java
   visible: true
   learner_created: true
-feedback_link: https://hyperskill.org/projects/197/stages/981/implement#comment
+feedback_link: https://hyperskill.org/learn/step/14398#comment
 status: Solved
 feedback:
   message: Congratulations!
   time: "Wed, 09 Aug 2023 11:41:20 UTC"
-record: -1
+record: 3

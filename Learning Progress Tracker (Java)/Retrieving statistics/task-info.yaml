@@ -973,6 +973,58 @@ files:
         }
     }
   learner_created: false
-feedback_link: https://hyperskill.org/projects/197/stages/982/implement#comment
-status: Unchecked
-record: -1
+- name: src/tracker/Student.java
+  visible: true
+  text: |
+    package tracker;
+
+    public final class Student {
+        public int java = 0;
+        public int dsa = 0;
+        public int database = 0;
+        public int spring = 0;
+
+    }
+  learner_created: true
+- name: test/tracker/MainTest.java
+  visible: true
+  text: |-
+    package tracker;
+
+    import org.junit.jupiter.api.Test;
+
+    import static org.junit.jupiter.api.Assertions.*;
+
+    class MainTest {
+
+        @Test
+        void validateEmail() {
+            assertTrue(Main.validateEmail("a@b.c"));
+            assertTrue(Main.validateEmail("a-a.a@b-b.bb.cc"));
+        }
+
+        @Test
+        void validateName() {
+            assertTrue(Main.validateName("Hello"));
+            assertTrue(Main.validateName("O'Neill"));
+            assertTrue(Main.validateName("Hai-Hai"));
+            assertFalse(Main.validateName("-asd"));
+            assertFalse(Main.validateName("asd'"));
+            assertFalse(Main.validateName("tür"));
+            assertFalse(Main.validateName("He''llo"));
+            assertFalse(Main.validateName("A"));
+        }
+    }
+  learner_created: true
+- name: src/tracker/Courses.java
+  visible: true
+  learner_created: true
+- name: src/tracker/ActivitiesTracker.java
+  visible: true
+  learner_created: true
+feedback_link: https://hyperskill.org/learn/step/14399#comment
+status: Solved
+feedback:
+  message: Congratulations!
+  time: "Tue, 15 Aug 2023 11:44:00 UTC"
+record: 4
